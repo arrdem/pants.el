@@ -91,7 +91,7 @@
 
 (defun pants--build-target-list (file action)
   "Generates a list of existing targets"
-  (let ((build-command (format "%s list %s:" (pants--build-command) file))
+  (let ((build-command (format "%s -q list %s:" (pants--build-command) file))
         targets target)
     (set (make-local-variable 'default-directory) (pants--get-source-tree))
     (with-temp-buffer
