@@ -106,9 +106,11 @@
         (push target targets)))
     (helm
      (helm :sources
-           `((name . "Targets")
+           `((name . "Pants Targets")
              (candidates . ,targets)
-             (action . action))))))
+             (action . action))
+           :buffer "*helm pants targets*"
+           :prompt "pants: "))))
 
 (defun pants--get-build-file-for-current-buffer ()
   "Finds the nearest build file for the current buffer"
