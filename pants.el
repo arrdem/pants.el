@@ -16,6 +16,9 @@
 (defcustom pants-exec-name "pants"
   "Path to the pants executable. This variable must be set.")
 
+(defcustom pants-extra-args ""
+  "Extra arguments to pass to the pants executable.")
+
 (defcustom pants-exec-args "--no-colors"
   "Arguments to the pants executable. Default is '--no-colors'")
 
@@ -48,12 +51,12 @@
 
 (defun pants--build-command ()
   "Returns the complete command to run."
-  (format "%s%s --config-override=%s%s %s"
-          (pants--get-source-tree) pants-exec-name (pants--get-source-tree) pants-ini pants-exec-args))
+  (format "%s%s %s --config-override=%s%s %s"
+          (pants--get-source-tree) pants-exec-name pants-extra-args (pants--get-source-tree) pants-ini pants-exec-args))
 
 (defun pants--python-repl-action (target)
   "Starts a Python REPL."
-  (let ((pants-repl-command (format "%s -q repl %s" (pants--build-command) target)))
+  (let ((pants-repl-command (format "%s repl %s" (pants--build-command) target)))
     (set (make-local-variable 'default-directory) pants-source-tree-root)
     (set (make-local-variable 'python-shell-exec-path) '(pants-source-tree-root))
     (set (make-local-variable 'python-shell-interpreter) pants-source-tree-root)
@@ -91,7 +94,7 @@
 
 (defun pants--build-target-list (file action)
   "Generates a list of existing targets"
-  (let ((build-command (format "%s -q list %s:" (pants--build-command) file))
+  (let ((build-command (format "%s list %s:" (pants--build-command) file))
         targets target)
     (set (make-local-variable 'default-directory) (pants--get-source-tree))
     (with-temp-buffer

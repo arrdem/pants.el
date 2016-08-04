@@ -22,7 +22,8 @@ Then update your emacs' configuration:
   :config
   (progn
     (setq pants-source-tree-root "/Users/fcuny/src/source"
-          pants-bury-compilation-buffer t)))
+          pants-bury-compilation-buffer t
+          pants-extra-args "-q")))
 ```
 
 ## Configuration
@@ -38,6 +39,8 @@ There's a few variables that you can set:
 * **pants-build-file**: Name of the BUILD file to look for
 
 * **pants-bury-compilation-buffer**: Set to true if you want to bury the compilation buffer after running successfully a command
+
+* **pants-extra-args**: Optional arguments to use with every call to `pants` (for example: "-q")
 
 ## Usage
 
