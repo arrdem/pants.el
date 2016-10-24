@@ -1,13 +1,11 @@
 ;;; pants.el --- A frontend for pants.
 
-;; Package-Requires: ((helm "1.5.3"))
-
 ;;; Code:
 (require 'compile)
-(require 'helm)
+(require 'ido)
 (require 'python)
 
-(defcustom pants-source-tree-root nil
+(defcustom pants-source-tree-root "~/doc/work/twitter/source"
   "Path to the repository.")
 
 (defcustom pants-ini "pants.ini"
@@ -56,7 +54,7 @@
 
 (defun pants--python-repl-action (target)
   "Starts a Python REPL."
-  (let ((pants-repl-command (format "%s repl %s" (pants--build-command) target)))
+  (let ((pants-repl-command (format "%s -q repl %s" (pants--build-command) target)))
     (set (make-local-variable 'default-directory) pants-source-tree-root)
     (set (make-local-variable 'python-shell-exec-path) '(pants-source-tree-root))
     (set (make-local-variable 'python-shell-interpreter) pants-source-tree-root)
@@ -71,6 +69,11 @@
 (defun pants--test-action (target)
   "Executes the `test' command"
   (let ((compile-command (format "%s test %s" (pants--build-command) target)))
+    (pants--compile compile-command)))
+
+(defun pants--run-action (target)
+  "Executes the `test' command"
+  (let ((compile-command (format "%s run %s" (pants--build-command) target)))
     (pants--compile compile-command)))
 
 (defun pants--compilation-setup ()
@@ -104,17 +107,12 @@
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (setq target (match-string 1))
         (push target targets)))
-    (helm
-     (helm :sources
-           `((name . "Pants Targets")
-             (candidates . ,targets)
-             (action . action))
-           :buffer "*helm pants targets*"
-           :prompt "pants: "))))
+    targets))
 
 (defun pants--get-build-file-for-current-buffer ()
   "Finds the nearest build file for the current buffer"
-  (pants--find-directory-containing-build-file (file-name-directory (buffer-file-name))))
+  (pants--find-directory-containing-build-file
+   (file-name-directory (buffer-file-name))))
 
 (define-compilation-mode pants-mode "pants"
   (set (make-local-variable 'compilation-process-setup-function)
@@ -130,30 +128,43 @@
       (error "Could not find %s" pants-build-file))))
 
 ;;;###autoload
-(defun pants-run-binary ()
+(defun pants-run-binary (target)
   "Builds a binary from a target."
-  (interactive)
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (if build-file
-        (pants--build-target-list build-file 'pants--build-action)
-      (error "Could not find %s" pants-build-file))))
+  (interactive
+   (list
+    (ido-completing-read
+     "Pants target: "
+     (pants--build-target-list (pants--get-build-file-for-current-buffer)
+                               'pants--build-action))))
+  (pants--run-action target))
 
 ;;;###autoload
-(defun pants-run-python-repl ()
+(defun pants-run-python-repl (target)
   "Runs a REPL from a target."
-  (interactive)
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (if build-file
-        (pants--build-target-list build-file 'pants--python-repl-action)
-      (error "Could not find %s" pants-build-file))))
+  (interactive
+   (list
+    (ido-completing-read
+     "Pants target: "
+     (let ((build-file (pants--get-build-file-for-current-buffer)))
+       (if build-file
+           (pants--build-target-list (pants--get-build-file-for-current-buffer)
+                                     'pants--build-action)
+         (error "Could not find %s" pants-build-file))))))
+  (pants--python-repl-action target))
+
 
 ;;;###autoload
-(defun pants-run-test ()
+(defun pants-run-test (target)
   "Runs the tests from a target."
-  (interactive)
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (if build-file
-        (pants--build-target-list build-file 'pants--test-action)
-      (error "Could not find %s" pants-build-file))))
+  (interactive
+   (list
+    (ido-completing-read
+     "Pants target: "
+     (let ((build-file (pants--get-build-file-for-current-buffer)))
+       (if build-file
+           (pants--build-target-list (pants--get-build-file-for-current-buffer)
+                                     'pants--build-action)
+         (error "Could not find %s" pants-build-file))))))
+  (pants--test-action target))
 
 (provide 'pants)
