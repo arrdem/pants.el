@@ -60,7 +60,7 @@
     (set (make-local-variable 'python-shell-interpreter) pants-source-tree-root)
     (set (make-local-variable 'python-shell-interpreter-args) pants-repl-command)
     (set (make-local-variable 'python-shell-prompt-detect-failure-warning) nil)
-    (run-python pants-repl-command)
+    (run-python pants-repl-command t)
     (python-shell-switch-to-shell)))
 
 (defun pants--build-action (target)
