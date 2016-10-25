@@ -100,7 +100,8 @@
 (defun pants--build-target-list (file action)
   "Generates a list of existing targets"
   (let ((build-command (format "%s list %s:" (pants--build-command) file))
-        targets target)
+        targets target
+        original-default-directory default-directory)
     (set (make-local-variable 'default-directory) (pants--get-source-tree))
     (with-temp-buffer
       (insert
@@ -109,6 +110,7 @@
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (setq target (match-string 1))
         (push target targets)))
+    (set 'default-directory original-default-directory)
     targets))
 
 (defun pants--get-build-file-for-current-buffer ()
