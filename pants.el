@@ -73,6 +73,11 @@
   (let ((compile-command (format "%s test %s" (pants--build-command) target)))
     (pants--compile compile-command)))
 
+(defun pants--fmt-action (target)
+  "Executes the `fmt' command"
+  (let ((compile-command (format "%s fmt.isort %s" (pants--build-command) target)))
+    (pants--compile compile-command)))
+
 (defun pants--compilation-setup ()
   "Sets the local configuration for the compile buffer"
   (set (make-local-variable 'compilation-scroll-output) 'first-error)
@@ -149,6 +154,15 @@
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
         (pants--build-target-list build-file 'pants--test-action)
+      (error "Could not find %s" pants-build-file))))
+
+;;;###autoload
+(defun pants-run-fmt ()
+  "Runs fmt on a target file to sort the import files (Python only)."
+  (interactive)
+  (let ((build-file (pants--get-build-file-for-current-buffer)))
+    (if build-file
+        (pants--build-target-list build-file 'pants--ifmt-action)
       (error "Could not find %s" pants-build-file))))
 
 (provide 'pants)
