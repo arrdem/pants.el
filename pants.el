@@ -1,10 +1,10 @@
 ;;; pants.el --- A frontend for pants.
 
-;; Package-Requires: ((helm "1.5.3"))
+;; Package-Requires: ((ivy "0.8.0"))
 
 ;;; Code:
 (require 'compile)
-(require 'helm)
+(require 'ivy)
 (require 'python)
 
 (defcustom pants-source-tree-root nil
@@ -104,13 +104,8 @@
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (setq target (match-string 1))
         (push target targets)))
-    (helm
-     (helm :sources
-           `((name . "Pants Targets")
-             (candidates . ,targets)
-             (action . action))
-           :buffer "*helm pants targets*"
-           :prompt "pants: "))))
+    (ivy-read "Pants Targets" targets
+              :action (lambda (target) (funcall action target)))))
 
 (defun pants--get-build-file-for-current-buffer ()
   "Finds the nearest build file for the current buffer"
