@@ -126,7 +126,7 @@
   (let ((compilation-buffer-name-function (lambda (arg) *pants-compilation-buffer*)))
     (compilation-start command 'pants-mode)))
 
-(defun pants--build-target-list (file action)
+(defun pants--complete-read (prompt file action)
   "Generates a list of existing targets"
   (let ((build-command (format "%s list %s:" (pants--build-command) file))
         targets target)
@@ -143,7 +143,7 @@
             (cond
              ((eq pants-completion-system 'ivy)
               (if (fboundp 'ivy-read)
-                  (ivy-read "Pants Targets" targets
+                  (ivy-read prompt targets
                             :action (prog1 action
                                       (setq action nil)))
                 (user-error "Please install ivy from https://github.com/abo-abo/swiper")))
@@ -155,10 +155,10 @@
                                           :action (prog1 action
                                                     (setq action nil))
                                           :buffer "*helm pants targets*"
-                                          :prompt "pants: "))
+                                          :prompt prompt))
                 (user-error "Please install helm from https://github.com/emacs-helm/helm")))
              ((eq pants-completion-system 'ido)
-              (ido-completing-read "Pants target: " targets))))
+              (ido-completing-read prompt targets))))
       (if action
           (funcall action res)
         res))))
@@ -186,7 +186,7 @@
   (interactive)
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
-        (pants--build-target-list build-file 'pants--build-action)
+        (pants--complete-read "Build a binary for: " build-file 'pants--build-action)
       (user-error "Could not find %s" pants-build-file))))
 
 ;;;###autoload
@@ -195,7 +195,7 @@
   (interactive)
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
-        (pants--build-target-list build-file 'pants--python-repl-action)
+        (pants--complete-read build-file "Run a REPL for: " 'pants--python-repl-action)
       (user-error "Could not find %s" pants-build-file))))
 
 ;;;###autoload
@@ -204,7 +204,7 @@
   (interactive)
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
-        (pants--build-target-list build-file 'pants--test-action)
+        (pants--complete-read "Run tests for: " build-file 'pants--test-action)
       (user-error "Could not find %s" pants-build-file))))
 
 ;;;###autoload
@@ -213,7 +213,7 @@
   (interactive)
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
-        (pants--build-target-list build-file 'pants--fmt-action)
+        (pants--complete-read "Run fmt for: " build-file 'pants--fmt-action)
       (user-error "Could not find %s" pants-build-file))))
 
 (provide 'pants)
