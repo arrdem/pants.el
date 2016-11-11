@@ -6,6 +6,14 @@
 (require 'compile)
 (require 'python)
 
+(defcustom pants-completion-system 'ivy
+  "The completion system to be used by pants."
+  :group 'pants
+  :type '(radio
+          (const :tag "ivy" ivy)
+          (const :tag "ido" ido)
+          (const :tag "helm" helm)))
+
 (defcustom pants-source-tree-root nil
   "Path to the repository."
   :group 'pants
@@ -93,7 +101,8 @@
 
 (defun pants--compilation-setup ()
   "Sets the local configuration for the compile buffer"
-  (set (make-local-variable 'compilation-scroll-output) 'first-error)
+  (set (make-local-variable 'compilation-scroll-output) t)
+  (set (make-local-variable 'compilation-disable-input) t)
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
          (when (and
