@@ -4,7 +4,6 @@
 
 ;;; Code:
 (require 'compile)
-(require 'ivy)
 (require 'python)
 
 (defcustom pants-source-tree-root nil
