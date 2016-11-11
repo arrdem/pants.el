@@ -1,5 +1,15 @@
 ;;; pants.el --- A frontend for pants.
 
+;; Copyright © 2016 Franck Cuny <franck.cuny@gmail.com>
+
+;; Author: Franck Cuny <franck.cuny@gmail.com>
+;; URL: https://github.com/franckcuny/pants.el
+
+;;; Commentary:
+;;
+;; This library provides an interface to `pants', a fast, scalable build system.
+;; See the README for more details.
+
 ;;; Code:
 (require 'compile)
 (require 'python)
