@@ -172,7 +172,7 @@
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
         (find-file (concat build-file pants-build-file))
-      (error "Could not find %s" pants-build-file))))
+      (user-error "Could not find %s" pants-build-file))))
 
 ;;;###autoload
 (defun pants-run-binary ()
@@ -181,7 +181,7 @@
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
         (pants--build-target-list build-file 'pants--build-action)
-      (error "Could not find %s" pants-build-file))))
+      (user-error "Could not find %s" pants-build-file))))
 
 ;;;###autoload
 (defun pants-run-python-repl ()
@@ -190,7 +190,7 @@
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
         (pants--build-target-list build-file 'pants--python-repl-action)
-      (error "Could not find %s" pants-build-file))))
+      (user-error "Could not find %s" pants-build-file))))
 
 ;;;###autoload
 (defun pants-run-test ()
@@ -199,7 +199,7 @@
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
         (pants--build-target-list build-file 'pants--test-action)
-      (error "Could not find %s" pants-build-file))))
+      (user-error "Could not find %s" pants-build-file))))
 
 ;;;###autoload
 (defun pants-run-fmt ()
@@ -208,6 +208,6 @@
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
         (pants--build-target-list build-file 'pants--fmt-action)
-      (error "Could not find %s" pants-build-file))))
+      (user-error "Could not find %s" pants-build-file))))
 
 (provide 'pants)
