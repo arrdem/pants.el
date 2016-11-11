@@ -1,7 +1,5 @@
 ;;; pants.el --- A frontend for pants.
 
-;; Package-Requires: ((ivy "0.8.0"))
-
 ;;; Code:
 (require 'compile)
 (require 'python)
