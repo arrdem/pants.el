@@ -126,46 +126,54 @@
   (let ((compilation-buffer-name-function (lambda (arg) *pants-compilation-buffer*)))
     (compilation-start command 'pants-mode)))
 
-(defun pants--complete-read (prompt file action)
+(defun pants--complete-read (prompt choices action)
   "Generates a list of existing targets"
-  (let ((build-command (format "%s list %s:" (pants--build-command) file))
-        targets target)
-    (set (make-local-variable 'default-directory) (pants--get-source-tree))
-    (with-temp-buffer
-      (insert
-       (shell-command-to-string build-command))
-      (goto-char (point-min))
-      (while (re-search-forward "^\\(.+\\)$" nil t)
-        (setq target (match-string 1))
-        (push target targets)))
-    (let (res)
-      (setq res
-            (cond
-             ((eq pants-completion-system 'ivy)
-              (if (fboundp 'ivy-read)
-                  (ivy-read prompt targets
-                            :action (prog1 action
-                                      (setq action nil)))
-                (user-error "Please install ivy from https://github.com/abo-abo/swiper")))
-             ((eq pants-completion-system 'helm)
-              (if (fboundp 'helm)
-                  (helm :sources
-                        (helm-make-source "Pants" 'helm-source-sync
-                                          :candidates targets
-                                          :action (prog1 action
-                                                    (setq action nil))
-                                          :buffer "*helm pants targets*"
-                                          :prompt prompt))
-                (user-error "Please install helm from https://github.com/emacs-helm/helm")))
-             ((eq pants-completion-system 'ido)
-              (ido-completing-read prompt targets))))
-      (if action
-          (funcall action res)
-        res))))
+  (let (res)
+    (setq res
+          (cond
+           ((eq pants-completion-system 'ivy)
+            (if (fboundp 'ivy-read)
+                (ivy-read prompt choices
+                          :action (prog1 action
+                                    (setq action nil)))
+              (user-error "Please install ivy from https://github.com/abo-abo/swiper")))
+           ((eq pants-completion-system 'helm)
+            (if (fboundp 'helm)
+                (helm :sources
+                      (helm-make-source "Pants" 'helm-source-sync
+                                        :candidates choices
+                                        :action (prog1 action
+                                                  (setq action nil))
+                                        :buffer "*helm pants targets*"
+                                        :prompt prompt))
+              (user-error "Please install helm from https://github.com/emacs-helm/helm")))
+           ((eq pants-completion-system 'ido)
+            (ido-completing-read prompt choices))))
+    (if action
+        (funcall action res)
+      res)))
 
 (defun pants--get-build-file-for-current-buffer ()
   "Finds the nearest build file for the current buffer"
-  (pants--find-directory-containing-build-file (file-name-directory (buffer-file-name))))
+  (let ((build-file (pants--find-directory-containing-build-file (file-name-directory (buffer-file-name)))))
+    (if build-file
+        build-file
+      (user-error "Could not find %s" pants-build-file))))
+
+(defun pants--get-targets ()
+  "Get the targets for the current file."
+  (let ((build-file (pants--get-build-file-for-current-buffer)))
+    (let ((build-command (format "%s list %s:" (pants--build-command) build-file))
+          targets target)
+      (set (make-local-variable 'default-directory) (pants--get-source-tree))
+      (with-temp-buffer
+        (insert
+         (shell-command-to-string build-command))
+        (goto-char (point-min))
+        (while (re-search-forward "^\\(.+\\)$" nil t)
+          (setq target (match-string 1))
+          (push target targets)))
+      targets)))
 
 (define-compilation-mode pants-mode "pants"
   (set (make-local-variable 'compilation-process-setup-function)
@@ -175,45 +183,30 @@
 (defun pants-find-build-file ()
   "Finds the build file and if it exists, open it."
   (interactive)
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (if build-file
-        (find-file (concat build-file pants-build-file))
-      (user-error "Could not find %s" pants-build-file))))
+  (find-file (concat (pants--get-build-file-for-current-buffer) pants-build-file)))
 
 ;;;###autoload
 (defun pants-run-binary ()
   "Builds a binary from a target."
   (interactive)
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (if build-file
-        (pants--complete-read "Build a binary for: " build-file 'pants--build-action)
-      (user-error "Could not find %s" pants-build-file))))
+  (pants--complete-read "Build a binary for: " (pants--get-targets) 'pants--build-action))
 
 ;;;###autoload
 (defun pants-run-python-repl ()
   "Runs a REPL from a target."
   (interactive)
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (if build-file
-        (pants--complete-read build-file "Run a REPL for: " 'pants--python-repl-action)
-      (user-error "Could not find %s" pants-build-file))))
+  (pants--complete-read "Run a REPL for: " (pants--get-targets) 'pants--python-repl-action))
 
 ;;;###autoload
 (defun pants-run-test ()
   "Runs the tests from a target."
   (interactive)
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (if build-file
-        (pants--complete-read "Run tests for: " build-file 'pants--test-action)
-      (user-error "Could not find %s" pants-build-file))))
+  (pants--complete-read "Run tests for: " (pants--get-targets) 'pants--test-action))
 
 ;;;###autoload
 (defun pants-run-fmt ()
   "Runs fmt on a target file to sort the import files (Python only)."
   (interactive)
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (if build-file
-        (pants--complete-read "Run fmt for: " build-file 'pants--fmt-action)
-      (user-error "Could not find %s" pants-build-file))))
+  (pants--complete-read "Run fmt for: " (pants--get-targets) 'pants--fmt-action))
 
 (provide 'pants)
