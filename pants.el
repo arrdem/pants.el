@@ -176,7 +176,7 @@
   (interactive)
   (let ((build-file (pants--get-build-file-for-current-buffer)))
     (if build-file
-        (pants--build-target-list build-file 'pants--ifmt-action)
+        (pants--build-target-list build-file 'pants--fmt-action)
       (error "Could not find %s" pants-build-file))))
 
 (provide 'pants)
