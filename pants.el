@@ -131,8 +131,23 @@
       (while (re-search-forward "^\\(.+\\)$" nil t)
         (setq target (match-string 1))
         (push target targets)))
-    (ivy-read "Pants Targets" targets
-              :action (lambda (target) (funcall action target)))))
+    (cond
+     ((eq pants-completion-system 'ivy)
+      (if (fboundp 'ivy-read)
+          (ivy-read "Pants Targets" targets
+                    :action (lambda (target) (funcall action target)))
+        (user-error "Please install ivy from https://github.com/abo-abo/swiper")))
+     ((eq pants-completion-system 'helm)
+      (if (fboundp 'helm)
+          (helm :sources
+                `((name . "Pants Targets")
+                  (candidates . ,targets)
+                  (action . action))
+                :buffer "*helm pants targets*"
+                :prompt "pants: ")
+        (user-error "Please install helm from https://github.com/emacs-helm/helm")))
+     ((eq pants-completion-system 'ido)
+      (ido-completing-read "Pants target: " targets)))))
 
 (defun pants--get-build-file-for-current-buffer ()
   "Finds the nearest build file for the current buffer"
