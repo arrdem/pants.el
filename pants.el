@@ -8,25 +8,39 @@
 (require 'python)
 
 (defcustom pants-source-tree-root nil
-  "Path to the repository.")
+  "Path to the repository."
+  :group 'pants
+  :type 'string)
 
 (defcustom pants-ini "pants.ini"
-  "Path to the pants.ini file to use. This variable must be set.")
+  "Path to the pants.ini file to use. This variable must be set."
+  :group 'pants
+  :type 'string)
 
 (defcustom pants-exec-name "pants"
-  "Path to the pants executable. This variable must be set.")
+  "Path to the pants executable. This variable must be set."
+  :group 'pants
+  :type 'string)
 
 (defcustom pants-extra-args ""
-  "Extra arguments to pass to the pants executable.")
+  "Extra arguments to pass to the pants executable."
+  :group 'pants
+  :type 'string)
 
 (defcustom pants-exec-args "--no-colors"
-  "Arguments to the pants executable. Default is '--no-colors'")
+  "Arguments to the pants executable. Default is '--no-colors'"
+  :group 'pants
+  :type 'string)
 
 (defcustom pants-build-file "BUILD"
-  "Name of the build files. Default is 'BUILD'")
+  "Name of the build files. Default is 'BUILD'"
+  :group 'pants
+  :type 'string)
 
 (defcustom pants-bury-compilation-buffer nil
-  "Set this variable to true to bury the compilation buffer if there's no error.")
+  "Set this variable to true to bury the compilation buffer if there's no error."
+  :group 'pants
+  :type 'boolean)
 
 (defvar *pants-compilation-buffer* "*pants-compilation-buffer*")
 
