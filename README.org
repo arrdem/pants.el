@@ -2,6 +2,8 @@
 
 ** Description
 
+This library provides an interface to [[http://www.pantsbuild.org/][pants]], a fast, scalable build system.
+
 ** Install
 
 Get a copy of the repository:
