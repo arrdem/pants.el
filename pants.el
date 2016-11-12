@@ -14,7 +14,7 @@
 (require 'compile)
 (require 'python)
 
-(defcustom pants-completion-system 'ivy
+(defcustom pants-completion-system 'ido
   "The completion system to be used by pants."
   :group 'pants
   :type '(radio
