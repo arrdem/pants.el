@@ -85,10 +85,10 @@
 
 (defun pants--python-repl-action (target)
   "Starts a Python REPL."
-  (let ((pants-repl-command (format "%s repl %s" (pants--build-command) target)))
-    (set (make-local-variable 'default-directory) pants-source-tree-root)
-    (set (make-local-variable 'python-shell-exec-path) '(pants-source-tree-root))
-    (set (make-local-variable 'python-shell-interpreter) pants-source-tree-root)
+  (let ((pants-repl-command (format "%s repl %s" (pants--build-command) target))
+        (default-directory (pants--get-source-tree)))
+    (set (make-local-variable 'python-shell-exec-path) '(pants--get-source-tree))
+    (set (make-local-variable 'python-shell-interpreter) (pants--get-source-tree))
     (set (make-local-variable 'python-shell-interpreter-args) pants-repl-command)
     (set (make-local-variable 'python-shell-prompt-detect-failure-warning) nil)
     (run-python pants-repl-command t)
@@ -130,7 +130,8 @@
 
 (defun pants--complete-read (prompt choices action)
   "Generates a list of existing targets"
-  (let (res)
+  (let ((default-directory (pants--get-source-tree))
+        res)
     (setq res
           (cond
            ((eq pants-completion-system 'ivy)
@@ -164,18 +165,24 @@
 
 (defun pants--get-targets ()
   "Get the targets for the current file."
-  (let ((build-file (pants--get-build-file-for-current-buffer)))
-    (let ((build-command (format "%s list %s:" (pants--build-command) build-file))
-          targets target)
-      (set (make-local-variable 'default-directory) (pants--get-source-tree))
-      (with-temp-buffer
+  (let ((build-command (format "%s list %s:"
+                               (pants--build-command)
+                               (pants--get-build-file-for-current-buffer)))
+        (default-directory (pants--get-source-tree))
+        targets)
+    (with-temp-buffer
+      (let (target)
         (insert
          (shell-command-to-string build-command))
         (goto-char (point-min))
         (while (re-search-forward "^\\(.+\\)$" nil t)
           (setq target (match-string 1))
-          (push target targets)))
-      targets)))
+          (push target targets))))
+    (push (format "%s::" (string-remove-prefix
+                          (pants--get-source-tree)
+                          (pants--get-build-file-for-current-buffer)))
+          targets)
+    targets))
 
 (define-compilation-mode pants-mode "pants"
   (set (make-local-variable 'compilation-process-setup-function)
