@@ -116,11 +116,11 @@
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
          (when (and
-                (eq status 'exit)
+                (equal status 'exit)
                 (zerop code)
-                (and pants-bury-compilation-buffer t)
-                (get-buffer *pants-compilation-buffer*))
-           (bury-buffer))
+                (and pants-bury-compilation-buffer t))
+           (bury-buffer (get-buffer *pants-compilation-buffer*))
+           (delete-window (get-buffer-window (get-buffer *pants-compilation-buffer*))))
          (cons msg code))))
 
 (defun pants--compile (command)
