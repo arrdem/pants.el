@@ -120,7 +120,7 @@
                 (zerop code)
                 (and pants-bury-compilation-buffer t))
            (bury-buffer (get-buffer *pants-compilation-buffer*))
-           (delete-window (get-buffer-window (get-buffer *pants-compilation-buffer*))))
+           (replace-buffer-in-windows (get-buffer *pants-compilation-buffer*)))
          (cons msg code))))
 
 (defun pants--compile (command)
