@@ -11,3 +11,5 @@
 (font-lock-add-keywords 'pants-mode
   '(("\\(name\\|sources?\\|dependencies\\)" . font-lock-keyword-face)
     ("\\(\\(python\\|java\\|scala\\)_\\(library\\|binary\\)\\|globs\\)" . font-lock-function-name-face)))
+
+(provide 'pants-mode)
