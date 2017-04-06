@@ -106,14 +106,14 @@
     (pants--compile compile-command)))
 
 (defun pants--run-action (target)
-  "Executes the `test' command"
+  "Executes the `run' command"
   (let ((compile-command (format "%s run %s" (pants--build-command) target)))
-		(pants--compile compile-command)))
+    (pants--compile compile-command)))
 
 (defun pants--fmt-action (target)
   "Executes the `fmt' command"
   (let ((compile-command (format "%s fmt.isort %s" (pants--build-command) target)))
-		(pants--compile compile-command)))
+    (pants--compile compile-command)))
 
 (defun pants--compilation-setup ()
   "Sets the local configuration for the compile buffer"
@@ -166,8 +166,8 @@
 (defun pants--get-build-file-for-current-buffer ()
   "Finds the nearest build file for the current buffer"
   (let ((build-file (pants--find-directory-containing-build-file
-										 (file-name-directory
-											(buffer-file-name)))))
+                     (file-name-directory
+                      (buffer-file-name)))))
     (if build-file
         build-file
       (user-error "Could not find %s" pants-build-file))))
@@ -204,19 +204,25 @@
   (find-file (concat (pants--get-build-file-for-current-buffer) pants-build-file)))
 
 ;;;###autoload
-(defun pants-run-binary (target)
+(defun pants-run-binary ()
   "Builds a binary from a target."
   (interactive)
   (pants--complete-read "Build a binary for: " (pants--get-targets) 'pants--build-action))
 
 ;;;###autoload
-(defun pants-run-python-repl (target)
+(defun pants-run-target ()
+  "Builds a binary from a target."
+  (interactive)
+  (pants--complete-read "Run: " (pants--get-targets) 'pants--run-action))
+
+;;;###autoload
+(defun pants-run-python-repl ()
   "Runs a REPL from a target."
   (interactive)
   (pants--complete-read "Run a REPL for: " (pants--get-targets) 'pants--python-repl-action))
 
 ;;;###autoload
-(defun pants-run-test (target)
+(defun pants-run-test ()
   "Runs the tests from a target."
   (interactive)
   (pants--complete-read "Run tests for: " (pants--get-targets) 'pants--test-action))
