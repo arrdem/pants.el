@@ -9,9 +9,8 @@
 (define-derived-mode pants-mode python-mode "BUILD")
 
 ;; These two are from http://www.pantsbuild.org/build_dictionary.html
-(defvar pants-mode-targets-pattern
-  (regexp-opt
-   (list "alias"
+(defvar pants-mode-targets-list
+  (list "alias"
          "android_binary"
          "android_dependency"
          "android_library"
@@ -66,11 +65,13 @@
          "scala_library"
          "scalac_plugin"
          "target"
-         "unpacked_jars")))
+         "unpacked_jars"))
 
-(defvar pants-mode-symbols-pattern
-  (regexp-opt
-   (list "ConfluencePublish"
+(defvar pants-mode-targets-pattern
+  (regexp-opt pants-mode-targets-list))
+
+(defvar pants-mode-symbols-list
+  (list "ConfluencePublish"
          "DirectoryReMapper"
          "Duplicate"
          "Skip"
@@ -117,11 +118,23 @@
          "shading_zap_package"
          "testing"
          "wiki_artifact"
-         "zglobs")))
+         "zglobs"))
+
+(defvar pants-mode-symbols-pattern
+  (regexp-opt pants-mode-symbols-list))
+
+(defvar pants-mode-keywords-list
+  (list "name"
+        "source"
+        "sources"
+        "dependencies"))
+
+(defvar pants-mode-keywords-pattern
+  (regexp-opt pants-mode-keywords-list))
 
 (font-lock-add-keywords 'pants-mode
-                        `(("\\(name\\|sources?\\|dependencies\\)" . font-lock-keyword-face)
-                          (,pants-mode-targets-pattern . font-lock-function-name-face)
-                          (,pants-mode-symbols-pattern . font-lock-function-name-face)))
+   `((,pants-mode-keywords-pattern . font-lock-keyword-face)
+     (,pants-mode-targets-pattern . font-lock-function-name-face)
+     (,pants-mode-symbols-pattern . font-lock-function-name-face)))
 
 (provide 'pants-mode)
