@@ -127,10 +127,13 @@
   (list "name"
         "source"
         "sources"
-        "dependencies"))
+        "dependencies"
+        "requirements"
+        "description"))
 
 (defvar pants-mode-keywords-pattern
-  (regexp-opt pants-mode-keywords-list))
+  (concat (regexp-opt pants-mode-keywords-list)
+          "\\S\\*="))
 
 (font-lock-add-keywords 'pants-mode
                         `((,pants-mode-keywords-pattern . font-lock-keyword-face)
