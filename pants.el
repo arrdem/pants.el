@@ -115,6 +115,13 @@
   (let ((compile-command (format "%s fmt.isort %s" (pants--build-command) target)))
     (pants--compile compile-command)))
 
+(defun pants--grep-action (target pattern)
+  "Executes `grep' against the output of pants filedeps"
+  (let* ((filedeps-command (format "%s filedeps %s" (pants--build-command) target))
+         (files (replace-regexp-in-string "\n\r?" " "
+                  (shell-command-to-string filedeps-command))))
+    (grep (concat "grep  -nH " pattern " " files))))
+
 (defun pants--compilation-setup ()
   "Sets the local configuration for the compile buffer"
   (set (make-local-variable 'compilation-scroll-output) t)
@@ -232,5 +239,12 @@
   "Runs fmt on a target file to sort the import files (Python only)."
   (interactive)
   (pants--complete-read "Run fmt for: " (pants--get-targets) 'pants--fmt-action))
+
+(defun pants-grep (pattern)
+  "Runs find-grep with a file list derived from PANTS"
+  (interactive
+   (list (read-string "Grep for what pattern: " "''")))
+  (pants--complete-read "Run grep for: " (pants--get-targets)
+                        (lambda (tgt) (pants--grep-action tgt pattern))))
 
 (provide 'pants)
