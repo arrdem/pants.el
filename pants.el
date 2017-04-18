@@ -59,9 +59,11 @@
 
 (defvar *pants-compilation-buffer* "*pants-compilation-buffer*")
 
-(defun pants--find-directory-containing-build-file (file)
+(defun pants--find-directory-containing-build-file (&optional file)
   "Finds the directory containing the build file next to a give file."
-  (let ((root nil)
+  (let ((file (or file (file-name-directory
+                        (buffer-file-name))))
+        (root nil)
         try)
     (while (not (or root
                     (null file)
@@ -73,6 +75,18 @@
                                      (directory-file-name file))))
              (setq file nil))))
     (and root (expand-file-name (file-name-as-directory root)))))
+
+(defun pants--find-source-directory-containing-build-file (&optional file)
+  (let ((file (or file (file-name-directory
+                        (buffer-file-name)))))
+    (replace-regexp-in-string "/\\(src\\|tests?\\)/" "/src/"
+      (pants--find-directory-containing-build-file file))))
+
+(defun pants--find-test-directory-containing-build-file (&optional file)
+  (let ((file (or file (file-name-directory
+                        (buffer-file-name)))))
+    (replace-regexp-in-string "/\\(src\\|tests?\\)/" "/tests/"
+      (pants--find-directory-containing-build-file file))))
 
 (defun pants--get-source-tree ()
   "Returns the name of the directory for the source tree, with a trailing slash."
@@ -179,11 +193,13 @@
         build-file
       (user-error "Could not find %s" pants-build-file))))
 
-(defun pants--get-targets ()
+(defun pants--get-targets (&optional build-file)
   "Get the targets for the current file."
-  (let ((build-command (format "%s list %s:"
+  (let* ((build-file (or build-file
+                         (pants--get-build-file-for-current-buffer)))
+         (build-command (format "%s list %s:"
                                (pants--build-command)
-                               (pants--get-build-file-for-current-buffer)))
+                               build-file))
         (default-directory (pants--get-source-tree))
         targets)
     (with-temp-buffer
@@ -196,7 +212,7 @@
           (push target targets))))
     (push (format "%s::" (string-remove-prefix
                           (pants--get-source-tree)
-                          (pants--get-build-file-for-current-buffer)))
+                          build-file))
           targets)
     targets))
 
@@ -232,7 +248,13 @@
 (defun pants-run-test ()
   "Runs the tests from a target."
   (interactive)
-  (pants--complete-read "Run tests for: " (pants--get-targets) 'pants--test-action))
+  (pants--complete-read "Run tests for: "
+    (concatenate 'list
+                 (pants--get-targets
+                  (pants--find-source-directory-containing-build-file))
+                 (pants--get-targets
+                  (pants--find-test-directory-containing-build-file)))
+    'pants--test-action))
 
 ;;;###autoload
 (defun pants-run-fmt ()
@@ -240,11 +262,26 @@
   (interactive)
   (pants--complete-read "Run fmt for: " (pants--get-targets) 'pants--fmt-action))
 
+;;;###autoload
 (defun pants-grep (pattern)
   "Runs find-grep with a file list derived from PANTS"
   (interactive
    (list (read-string "Grep for what pattern: " "''")))
   (pants--complete-read "Run grep for: " (pants--get-targets)
                         (lambda (tgt) (pants--grep-action tgt pattern))))
+
+;;;###autoload
+(defun pants-jump-to-tests (dir)
+  "Knows how to map source dirs to test dirs, and opens the tests dir"
+  (interactive
+   (list (pants--find-test-directory-containing-build-file)))
+  (dired dir))
+
+;;;###autoload
+(defun pants-jump-to-docs (dir)
+  "Knows how to map source dirs to test dirs, and opens the tests dir"
+  (interactive
+   (list (pants--find-source-directory-containing-build-file)))
+  (dired (replace-regexp-in-string "$" "/docs/" dir)))
 
 (provide 'pants)
