@@ -132,8 +132,7 @@
         "description"))
 
 (defvar pants-mode-keywords-pattern
-  (concat (regexp-opt pants-mode-keywords-list)
-          "\\S\\*="))
+  (regexp-opt pants-mode-keywords-list))
 
 (font-lock-add-keywords 'pants-mode
                         `((,pants-mode-keywords-pattern . font-lock-keyword-face)

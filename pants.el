@@ -133,7 +133,9 @@
   "Executes `grep' against the output of pants filedeps"
   (let* ((filedeps-command (format "%s filedeps %s" (pants--build-command) target))
          (files (replace-regexp-in-string "\n\r?" " "
-                  (shell-command-to-string filedeps-command))))
+                (replace-regexp-in-string (pants--get-source-tree) ""
+                (replace-regexp-in-string "^WARNING.*?\n" ""
+                (shell-command-to-string filedeps-command))))))
     (grep (concat "grep  -nH " pattern " " files))))
 
 (defun pants--compilation-setup ()
@@ -153,7 +155,7 @@
 (defun pants--compile (command)
   "Executes the compilation"
   (let ((compilation-buffer-name-function (lambda (arg) *pants-compilation-buffer*)))
-    (compilation-start command 'pants-mode)))
+    (compilation-start command 'pants-compilation-mode)))
 
 (defun pants--complete-read (prompt choices action)
   "Generates a list of existing targets"
@@ -178,7 +180,7 @@
                                         :prompt prompt))
               (user-error "Please install helm from https://github.com/emacs-helm/helm")))
            ((eq pants-completion-system 'ido)
-            (ido-completing-read prompt choices))))
+            (string-join (completing-read-multiple prompt choices) " "))))
     (if action
         (funcall action res)
       res)))
@@ -205,7 +207,8 @@
     (with-temp-buffer
       (let (target)
         (insert
-         (shell-command-to-string build-command))
+         (replace-regexp-in-string "^WARNING.*?\n" ""
+           (shell-command-to-string build-command)))
         (goto-char (point-min))
         (while (re-search-forward "^\\(.+\\)$" nil t)
           (setq target (match-string 1))
@@ -216,7 +219,15 @@
           targets)
     targets))
 
-(define-compilation-mode pants-mode "pants"
+(defun pants--get-src+test-targets ()
+  "Return both the src and test targets inferred for a BUILD file"
+  (concatenate 'list
+                 (pants--get-targets
+                  (pants--find-source-directory-containing-build-file))
+                 (pants--get-targets
+                  (pants--find-test-directory-containing-build-file))))
+
+(define-compilation-mode pants-compilation-mode "pants"
   (set (make-local-variable 'compilation-process-setup-function)
        'pants--compilation-setup))
 
@@ -248,13 +259,7 @@
 (defun pants-run-test ()
   "Runs the tests from a target."
   (interactive)
-  (pants--complete-read "Run tests for: "
-    (concatenate 'list
-                 (pants--get-targets
-                  (pants--find-source-directory-containing-build-file))
-                 (pants--get-targets
-                  (pants--find-test-directory-containing-build-file)))
-    'pants--test-action))
+  (pants--complete-read "Run tests for: " (pants--get-src+test-targets) 'pants--test-action))
 
 ;;;###autoload
 (defun pants-run-fmt ()
@@ -267,7 +272,7 @@
   "Runs find-grep with a file list derived from PANTS"
   (interactive
    (list (read-string "Grep for what pattern: " "''")))
-  (pants--complete-read "Run grep for: " (pants--get-targets)
+  (pants--complete-read "Run grep for: " (pants--get-src+test-targets)
                         (lambda (tgt) (pants--grep-action tgt pattern))))
 
 ;;;###autoload
