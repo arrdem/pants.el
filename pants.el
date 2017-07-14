@@ -126,7 +126,7 @@
 
 (defun pants--fmt-action (target)
   "Executes the `fmt' command"
-  (let ((compile-command (format "%s fmt.isort %s" (pants--build-command) target)))
+  (let ((compile-command (format "%s fmt %s" (pants--build-command) target)))
     (pants--compile compile-command)))
 
 (defun pants--grep-action (target pattern)
@@ -263,7 +263,7 @@
 
 ;;;###autoload
 (defun pants-run-fmt ()
-  "Runs fmt on a target file to sort the import files (Python only)."
+  "Runs fmt on a target."
   (interactive)
   (pants--complete-read "Run fmt for: " (pants--get-targets) 'pants--fmt-action))
 
